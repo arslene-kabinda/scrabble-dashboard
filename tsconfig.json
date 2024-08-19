@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+      "baseUrl": ".",
+      "paths": {
+        "usehooks-ts": ["node_modules/usehooks-ts"]
+      }
+
+    },
+    "include": ["src"]
+
+  }
+  

@@ -1,0 +1,1 @@
+export const displayPhoneNumber = (phone) => phone.slice(4)
