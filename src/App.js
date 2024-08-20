@@ -9,6 +9,7 @@ import Dashboard from "./scenes/dashboard";
 // import Products from "scenes/products";
 import Users from "./scenes/users";
 import Transactions from "./scenes/transactions";
+import Games from "./scenes/games";
 // import Geography from "scenes/geography";
 // import Overview from "scenes/overview";
 // import Daily from "scenes/daily";
@@ -31,6 +32,8 @@ function App() {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/users" element={<Users />} />
               <Route path="/transactions" element={<Transactions />} />
+              <Route path="/games" element={<Games />} />
+
            
             </Route>
           </Routes>

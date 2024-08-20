@@ -1,54 +1,31 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Box, useTheme } from "@mui/material";
 import { useGetCustomersQuery } from "../../state/api";
 import Header from "../../components/Header";
 import { DataGrid } from "@mui/x-data-grid";
+import axiosInstance from "../../services/axios";
 
 const Users = () => {
   const theme = useTheme();
-  const { data, isLoading } = useGetCustomersQuery();
-  console.log("data", data);
+  const [users, setUsers] = useState([])
+  const [loading, setLoading] = useState(false)
 
-  const columns = [
-    {
-      field: "_id",
-      headerName: "ID",
-      flex: 1,
-    },
-    {
-      field: "name",
-      headerName: "Name",
-      flex: 1,
-    },
-    {
-      field: "email",
-      headerName: "Email",
-      flex: 1,
-    },
-    {
-      field: "phoneNumber",
-      headerName: "Phone Number",
-      flex: 0.8,
-      renderCell: (params) => {
-        return params.value.replace(/^(\d{3})(\d{3})(\d{4})/, "($1)$2-$3");
-      },
-    },
-    {
-      field: "wallet",
-      headerName: "Wallet",
-      flex: 0.4,
-    },
-    {
-      field: "point",
-      headerName: "Point",
-      flex: 0.5,
-    },
-    {
-      field: "score",
-      headerName: "Score",
-      flex: 0.5,
-    },
-  ];
+  useEffect(() => {
+    fetchUsers()
+  }, [])
+
+  const fetchUsers = async () => {
+    setLoading(true)
+    try {
+      const { data } = await axiosInstance('/users')
+      setUsers(data)
+    } catch (e) {
+
+    } finally {
+      setLoading(false)
+    }
+  }
+
 
   return (
     <Box m="1.5rem 2.5rem">
@@ -81,12 +58,48 @@ const Users = () => {
           },
         }}
       >
-        <DataGrid
-          loading={isLoading || !data}
-          getRowId={(row) => row._id}
-          rows={data || []}
-          columns={columns}
-        />
+         {
+          loading ? <div>Loading....</div> : (
+            <div>
+              
+              <div className="row col-4 header" >
+                
+                  {/* <div>ID</div> */}
+                  <div className="column">Nom</div>
+                  <div className="column">Portfeuille</div>
+                  <div className="column">Score</div>
+                  <div className="column">Meilleur score</div>
+              
+              </div>
+              <div>
+                {
+                  users.map((u) => {
+                    return (
+                      <div className="row col-4" key={u.uid}>
+                        {/* <td>
+                          { u.uid }
+                        </td> */}
+                        <span className="column">
+                          {u.displayName}
+                        </span>
+                        
+                        <span className="column">
+                          {u.wallet?.amount ?? 0}
+                        </span>
+                        <span className="column">
+                          { u.score ?? 0}
+                        </span>
+                        <span className="column">
+                          { u.bestScore?.points ?? 0}
+                        </span>
+                      </div>
+                    )
+                  })
+                }
+              </div>
+            </div>
+          )
+        }
       </Box>
     </Box>
   );

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import FlexBetween from "../../components/FlexBetween";
 import Header from "../../components/Header";
 import { tokens } from "../../theme";
@@ -18,76 +18,48 @@ import {
 } from "@mui/material";
 import DownloadOutlinedIcon from "@mui/icons-material/DownloadOutlined";
 import { DataGrid } from "@mui/x-data-grid";
-// import BreakdownChart from "components/BreakdownChart";
-// import OverviewChart from "components/OverviewChart";
 import { useGetDashboardQuery } from "../../state/api";
-// import StatBox from "components/StatBox";
 import * as mockData from "../../data/mockData";
 import LineChart from "../../components/LineChart";
-// import GeographyChart from "components/GeographyChart";
-// import BarChart from "components/BarChart";
-// import ProgressCircle from "components/ProgressCircle";
 import RecentTransaction from "../../components/RecentTransaction";
-import { useTransactions } from "../../store/transactions";
+import axiosInstance from "../../services/axios";
 const Dashboard = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const isNonMediumScreens = useMediaQuery("(min-width: 1200px)");
   const { data, isLoading } = useGetDashboardQuery();
-  const { loading, transactions, loadTransactions } = useTransactions()
+  const [transactions, setTransactions] =  useState([]);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    loadTransactions()
+    fetchUsers();
+    fetchRecentTransaction();
   }, [])
 
-  const columns = [
-    {
-      field: "_id",
-      headerName: "ID",
-      flex: 1,
-    },
+  const fetchUsers = async () => {
+    setLoading(true)
+    try {
+      const { data } = await axiosInstance('/users/randoms?nbr=18')
+      setUsers(data)
+    } catch (e) {
 
-    {
-      field: "createdAt",
-      headerName: "CreatedAt",
-      flex: 1,
-    },
-    {
-      field: "name",
-      headerName: "Name",
-      flex: 0.8,
-    },
-    {
-      field: "email",
-      headerName: "Email",
-      flex: 0.8,
-    },
-    {
-      field: "phoneNumber",
-      headerName: "Phone Number",
-      flex: 0.8,
-      renderCell: (params) => {
-        return params.value.replace(/^(\d{3})(\d{3})(\d{4})/, "($1)$2-$3");
-      },
-    },
-    {
-      field: "wallet",
-      headerName: "Wallet",
-      flex: 0.4,
-    },
-    {
-      field: "point",
-      headerName: "Point",
-      flex: 0.5,
-    },
-    {
-      field: "score",
-      headerName: "Score",
-      flex: 0.5,
-    },
-   
-  ];
+    } finally {
+      setLoading(false)
+    }
+  }
+ const fetchRecentTransaction =async () => {
+  setLoading(true)
+  try {
+    const { data } = await axiosInstance.get('/transactions?nbr=10')
+    setTransactions(data)
+    
+  } catch (e) {
 
+  } finally {
+    setLoading(false)
+  }
+}
   return (
     <Box m="1.5rem 2.5rem">
       <FlexBetween>
@@ -106,9 +78,8 @@ const Dashboard = () => {
       >
         {/* ROW 1 */}
         <Box
-          gridColumn="span 4"
+          gridColumn="span 5"
           gridRow="span 2"
-          backgroundColor={theme.palette.background.alt}
           overflow="auto"
            borderRadius="0.55rem"
         >
@@ -124,40 +95,41 @@ const Dashboard = () => {
               Transactions Récentes
             </Typography>
           </Box>
-          {mockData.mockTransactions.map((transaction, i) => (
-            <Box
-              key={`${transaction.txId}-${i}`}
-              display="flex"
-              justifyContent="space-between"
-              alignItems="center"
-              borderBottom={`4px solid ${colors.primary[500]}`}
-              p="15px"
-            >
-              <Box>
-                <Typography
-                  color={theme.palette.secondary[500]}
-                  variant="h5"
-                  fontWeight="600"
-                >
-                  {transaction.txId}
-                </Typography>
-                <Typography color={colors.grey[100]}>
-                  {transaction.user}
-                </Typography>
-              </Box>
-              <Box color={colors.grey[100]}>{transaction.date}</Box>
-              <Box
-                backgroundColor={theme.palette.secondary[500]}
-                p="5px 10px"
-                borderRadius="4px"
-              >
-                ${transaction.cost}
-              </Box>
-            </Box>
-          ))}
+          {
+          loading ? <div>Loading....</div> : (
+            <div className="container">
+              <div className="row col-3 header">
+                 <div className="column">Nom</div>
+                  <div className="column">Balance</div>
+                  <div className="column">Status</div>
+              
+              </div>
+              <div>
+                {
+                  transactions.map((u) => {
+                    return (
+                      <div className="row col-3" key={u.uid}>
+                        <span className="column">
+                          {u.user.displayName}
+                        </span>
+                       
+                        <span className="column">
+                          {u.amount ?? 0}
+                        </span>
+                        <span className="column">
+                          { u.status}
+                        </span>
+                      </div>
+                    )
+                  })
+                }
+              </div>
+            </div>
+          )
+        }
         </Box>
         <Box
-          gridColumn="span 8"
+          gridColumn="span 7"
           gridRow="span 2"
           backgroundColor={theme.palette.background.alt}
           borderRadius="0.55rem"
@@ -201,6 +173,7 @@ const Dashboard = () => {
 
         {/* ROW 2 */}
         <Box
+          
           gridColumn="span 8"
           gridRow="span 3"
           sx={{
@@ -229,12 +202,54 @@ const Dashboard = () => {
             },
           }}
         >
-          <DataGrid
-            loading={isLoading || !data}
-            getRowId={(row) => row._id}
-            rows={(data && data.transactions) || []}
-            columns={columns}
-          />
+            <Typography  variant="h5" fontWeight="600" className="title">
+                Liste des utilisateurs            
+          </Typography>
+
+          {
+          loading ? <div>Loading....</div> : (
+            <div>
+              
+              <div className="row col-4">
+                
+                  {/* <div>ID</div> */}
+                  <div className="column">Nom</div>
+                  <div className="column">Portfeuille</div>
+                  <div className="column">Score</div>
+                  <div className="column">Meilleur score</div>
+              
+              </div>
+              <div>
+                {
+                  users.map((u) => {
+                    return (
+                      <div className="row col-4" key={u.uid}>
+                        {/* <td>
+                          { u.uid }
+                        </td> */}
+                        <span className="column">
+                          {u.displayName}
+                        </span>
+                        
+                        <span className="column">
+                          {u.wallet?.amount ?? 0}
+                        </span>
+                        <span className="column">
+                          { u.score ?? 0}
+                        </span>
+                        <span className="column">
+                          { u.bestScore?.points ?? 0}
+                        </span>
+                      </div>
+                    )
+                  })
+                }
+              </div>
+            </div>
+          )
+        }
+
+
         </Box>
         <Box
           gridColumn="span 4"

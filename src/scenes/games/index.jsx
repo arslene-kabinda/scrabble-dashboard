@@ -1,12 +1,13 @@
-import React, {useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Box, useTheme } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { useGetTransactionsQuery } from "../../state/api";
 import Header from "../../components/Header";
 import DataGridCustomToolbar from "../../components/DataGridCustomToolbar";
 import axiosInstance from "../../services/axios";
+import UserGame from "../../components/UserGame";
 
-const Transactions = () => {
+const Games = () => {
   const theme = useTheme();
 
   // values to be sent to the backend
@@ -14,19 +15,19 @@ const Transactions = () => {
   const [pageSize, setPageSize] = useState(20);
   const [sort, setSort] = useState({});
   const [search, setSearch] = useState("");
-  const [transactions, setTransactions] =  useState([]);
+  const [games, setGames] = useState([]);
   const [searchInput, setSearchInput] = useState("");
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    fetchTransactions();
-    
+    fetchGames();
+
   }, [])
-  const fetchTransactions = async () => {
+  const fetchGames = async () => {
     setLoading(true)
     try {
-      const { data } = await axiosInstance('/transactions?nbr=1000&all=1')
-      setTransactions(data)
+      const { data } = await axiosInstance('/games')
+      setGames(data)
     } catch (e) {
 
     } finally {
@@ -36,7 +37,7 @@ const Transactions = () => {
 
   return (
     <Box m="1.5rem 2.5rem">
-      <Header title="TRANSACTIONS"  />
+      <Header title="TRANSACTIONS" subtitle="Liste des transactions" />
       <Box
         height="80vh"
         sx={{
@@ -66,37 +67,24 @@ const Transactions = () => {
       >
         {
           loading ? <div>Loading....</div> : (
-            <div>
-              <div className="row col-4 header">
-                      
-                  <span className="column">Nom</span>
-                  <span className="column">Balance</span>
-                  <span className="column">Types</span>                              
-                  <span className="column">Satus</span>
-                
-              </div>
-              <div>
-                {
-                   transactions.map((u) => {
-                    return (
-                      <div className="row col-4" key={u.uid}>
-                        <span className="column" >
-                        {u.user?.displayName}
-                        </span >
-                        <span className="column">
-                          {u.amount ?? 0}
-                        </span >
-                        <span className="column">
-                          {u.type ?? 0}
-                        </span >
-                        <span className="column">
-                          { u.status}
-                        </span >
+            <div className="grid grid-cols-2 gap">
+              {
+                games.map((game) => {
+                  const firstUser = game.usersModels[0]
+                  const secondUser = game.usersModels[1]
+                  return (
+                    <div className="w-full grid grid-cols-3 gap-5 border gap padding">
+                      <UserGame details={firstUser} score={game.users.find(u => u.userId == firstUser.uid)} />
+                      <div className="w-full flex items-center justify-center">
+                        <span>
+                          -
+                        </span>
                       </div>
-                    )
-                  })
-                }
-              </div>
+                      <UserGame left={true} details={secondUser} score={game.users.find(u => u.userId == secondUser.uid)} />
+                    </div>
+                  )
+                })
+              }
             </div>
           )
         }
@@ -105,4 +93,4 @@ const Transactions = () => {
   );
 };
 
-export default Transactions;
+export default Games;
