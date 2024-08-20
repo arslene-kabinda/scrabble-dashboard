@@ -27,3 +27,94 @@ body,
 ::-webkit-scrollbar-track:hover {
   background: #21295c;
 }
+
+.name{
+  text-align: center;
+}
+.balance{
+
+  text-align: center;
+  
+}
+.status{
+  text-align: center;
+
+ 
+}
+.container{
+}
+th{
+  margin-left: 20px;
+  margin-right: 20px;
+}
+
+thead{
+background-color: #21295c;
+margin-bottom: 20px;
+}
+.row{
+  display: grid;
+  background-color: #21295c;
+margin-bottom: 5px;
+width: 100%;
+}
+.column{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+.header{
+  background: #ffd166 ;
+  color: #000;
+  font-weight: 600;
+}
+.col-3{
+  grid-template-columns: repeat(3,1fr);
+}
+.col-5{
+  grid-template-columns: repeat(5,1fr);
+  width: 100%;
+
+}
+
+.col-4  {
+  grid-template-columns: repeat(4,1fr);
+  width: 100%;
+}
+.title{
+  background: #ffd166 ;
+  color: #000;
+  font-weight: 600;
+  margin-bottom: 20px;
+  padding-left: 10px;
+}
+
+.grid {
+  display: grid;
+}
+
+.grid-cols-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.border {
+  border: 1px solid red;
+}
+
+.gap {
+  gap: 5px;
+}
+
+.padding {
+  padding: 5px;
+}
+
+.grid-cols-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.w-full {
+  width: 100%;
+}
