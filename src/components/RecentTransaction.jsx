@@ -85,7 +85,7 @@ const Transaction = ({ transaction, onValidation }) => {
 	}, [transaction.uid]);
 
 	return (
-		<div className="border border-black rounded-md p-3 flex flex-col gap-5">
+		<div className="border border-white rounded-md p-3 flex flex-col gap-5 ">
 			<h2 className="text-xl">{transaction.amount} $</h2>
 			<div className="flex items-center gap-3 justify-between">
 				<span>{transaction.phone}</span>
@@ -181,7 +181,7 @@ function RecentTransaction() {
 					<IoMdSync />
 				</button>
 			</div>
-			<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+			<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
 				{transactions.map((transaction, index) => (
 					<Transaction
 						onValidation={onValidation}

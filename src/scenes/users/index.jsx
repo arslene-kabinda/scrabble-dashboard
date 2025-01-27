@@ -80,7 +80,8 @@ const Users = () => {
                           { u.uid }
                         </td> */}
                         <span className="column">
-                          {u.displayName}
+
+                         {u?.displayName ?? "Nom indisponible"}
                         </span>
                         
                         <span className="column">

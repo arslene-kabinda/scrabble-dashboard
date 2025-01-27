@@ -2,267 +2,308 @@ import React, { useEffect, useState } from "react";
 import FlexBetween from "../../components/FlexBetween";
 import Header from "../../components/Header";
 import { tokens } from "../../theme";
-import {
-  Email,
-  PointOfSale,
-  PersonAdd,
-  Traffic,
-} from "@mui/icons-material";
-import {
-  Box,
-  Button,
-  Typography,
-  useTheme,
-  useMediaQuery,
-  IconButton
-} from "@mui/material";
+import { Box, Typography, useTheme, IconButton } from "@mui/material";
 import DownloadOutlinedIcon from "@mui/icons-material/DownloadOutlined";
-import { DataGrid } from "@mui/x-data-grid";
-import { useGetDashboardQuery } from "../../state/api";
-import * as mockData from "../../data/mockData";
 import LineChart from "../../components/LineChart";
 import RecentTransaction from "../../components/RecentTransaction";
 import axiosInstance from "../../services/axios";
+
 const Dashboard = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
-  const isNonMediumScreens = useMediaQuery("(min-width: 1200px)");
-  const { data, isLoading } = useGetDashboardQuery();
-  const [transactions, setTransactions] =  useState([]);
+
+  // States
+  const [transactions, setTransactions] = useState([]);
   const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(false)
+  const [walletData, setWalletData] = useState(null);
+  const [chartData, setChartData] = useState([]);
+  const [loading, setLoading] = useState({ users: false, transactions: false, wallet: false });
+  const [error, setError] = useState({ users: null, transactions: null, wallet: null });
 
   useEffect(() => {
-    fetchUsers();
-    fetchRecentTransaction();
-  }, [])
+    fetchData("/users/randoms?nbr=18", setUsers, "users");
+    fetchData("/transactions?nbr=10&all=all", setTransactions, "transactions");
+    fetchWalletData();
+  }, []);
 
-  const fetchUsers = async () => {
-    setLoading(true)
+  // Generic fetch function for users and transactions
+  const fetchData = async (url, setState, key) => {
+    setLoading((prev) => ({ ...prev, [key]: true }));
+    setError((prev) => ({ ...prev, [key]: null }));
+
     try {
-      const { data } = await axiosInstance('/users/randoms?nbr=18')
-      setUsers(data)
-    } catch (e) {
-
+      const { data } = await axiosInstance.get(url);
+      setState(data);
+    } catch (err) {
+      setError((prev) => ({ ...prev, [key]: "Erreur lors de la récupération des données." }));
+      console.error(`Erreur pour ${key}:`, err);
     } finally {
-      setLoading(false)
+      setLoading((prev) => ({ ...prev, [key]: false }));
     }
-  }
- const fetchRecentTransaction =async () => {
-  setLoading(true)
-  try {
-    const { data } = await axiosInstance.get('/transactions?nbr=10')
-    setTransactions(data)
-    
-  } catch (e) {
+  };
 
-  } finally {
-    setLoading(false)
-  }
-}
+  // Fetch wallet data and format for LineChart
+  const fetchWalletData = async () => {
+    setLoading((prev) => ({ ...prev, wallet: true }));
+    setError((prev) => ({ ...prev, wallet: null }));
+
+    try {
+      const { data } = await axiosInstance.get("/app-wallet");
+      setWalletData(data.balance);
+
+      const formattedData = [
+        {
+          id: "Balance",
+          color: "hsl(220, 70%, 50%)",
+          data: data.createdAt && data.balance ? [
+            {
+              x: new Date(data.createdAt).toLocaleDateString(),
+              y: data.balance,
+            },
+          ] : [],
+        },
+      ];
+      
+      setChartData(formattedData);
+    } catch (err) {
+      setError((prev) => ({ ...prev, wallet: "Erreur lors de la récupération des données du portefeuille." }));
+      console.error("Erreur pour wallet:", err);
+    } finally {
+      setLoading((prev) => ({ ...prev, wallet: false }));
+    }
+  };
+
   return (
     <Box m="1.5rem 2.5rem">
       <FlexBetween>
         <Header title="DASHBOARD" subtitle="Bienvenue dans votre tableau de bord" />
       </FlexBetween>
 
+      {/* GRID LAYOUT */}
       <Box
         mt="20px"
         display="grid"
         gridTemplateColumns="repeat(12, 1fr)"
-        gridAutoRows="160px"
+        gridAutoRows="minmax(160px, auto)"
         gap="20px"
-        sx={{
-          "& > div": { gridColumn: isNonMediumScreens ? undefined : "span 12" },
-        }}
       >
-        {/* ROW 1 */}
+        {/* Transactions récentes */}
         <Box
-          gridColumn="span 5"
-          gridRow="span 2"
+          gridColumn="span 6"
+          borderRadius="0.55rem"
+          backgroundColor={theme.palette.background.alt}
           overflow="auto"
-           borderRadius="0.55rem"
         >
           <Box
             display="flex"
             justifyContent="space-between"
             alignItems="center"
             borderBottom={`4px solid ${colors.primary[500]}`}
-            colors={colors.grey[100]}
             p="15px"
           >
-            <Typography color={colors.grey[100]} variant="h5" fontWeight="600">
+            <Typography variant="h5" fontWeight="600" color={colors.grey[100]}>
               Transactions Récentes
             </Typography>
           </Box>
-          {
-          loading ? <div>Loading....</div> : (
-            <div className="container">
-              <div className="row col-3 header">
-                 <div className="column">Nom</div>
-                  <div className="column">Balance</div>
-                  <div className="column">Status</div>
-              
-              </div>
-              <div>
-                {
-                  transactions.map((u) => {
-                    return (
-                      <div className="row col-3" key={u.uid}>
-                        <span className="column">
-                          {u.user.displayName}
-                        </span>
-                       
-                        <span className="column">
-                          {u.amount ?? 0}
-                        </span>
-                        <span className="column">
-                          { u.status}
-                        </span>
-                      </div>
-                    )
-                  })
-                }
-              </div>
-            </div>
-          )
-        }
-        </Box>
-        <Box
-          gridColumn="span 7"
-          gridRow="span 2"
-          backgroundColor={theme.palette.background.alt}
-          borderRadius="0.55rem"
-        >
-          <Box
-            mt="25px"
-            p="0 30px"
-            display="flex "
-            justifyContent="space-between"
-            alignItems="center"
-          >
-            <Box>
-              <Typography
-                variant="h5"
-                fontWeight="600"
-                color={colors.grey[100]}
-              >
-                Recettes générées
-              </Typography>
-              <Typography
-                variant="h3"
-                fontWeight="bold"
-                color={theme.palette.secondary[500]}
-              >
-                $59,342.32
-              </Typography>
-            </Box>
-            <Box>
-              <IconButton>
-                <DownloadOutlinedIcon
-                  sx={{ fontSize: "26px", color:theme.palette.secondary[500] }}
-                />
-              </IconButton>
-            </Box>
-          </Box>
-          <Box height="250px" m="-20px 0 0 0">
-            <LineChart isDashboard={true} />
-          </Box>
-        </Box>
-       
 
-        {/* ROW 2 */}
-        <Box
+          {loading.transactions ? (
+            <Typography textAlign="center" p="20px">
+              Chargement des transactions...
+            </Typography>
+          ) : error.transactions ? (
+            <Typography textAlign="center" p="20px" color="red">
+              {error.transactions}
+            </Typography>
+          ) : (
+            <Box>
+            {/* Titres des colonnes */}
+            <Box
+              display="grid"
+              gridTemplateColumns="repeat(3, 1fr)"
+              borderBottom={`2px solid ${colors.primary?.[500] || "#6200ea"}`}
+              p="10px"
+              borderRadius="0.25rem"
+            >
+              <Typography color= "#ffffff" fontWeight="700">
+                Nom de l'utilisateur
+              </Typography>
+              <Typography color= "#ffffff" fontWeight="700">
+                Montant (USD)
+              </Typography>
+              <Typography color= "#ffffff" fontWeight="700">
+                Statut
+              </Typography>
+            </Box>
           
-          gridColumn="span 8"
-          gridRow="span 3"
-          sx={{
-            "& .MuiDataGrid-root": {
-              border: "none",
-              borderRadius: "5rem",
-            },
-            "& .MuiDataGrid-cell": {
-              borderBottom: "none",
-            },
-            "& .MuiDataGrid-columnHeaders": {
-              backgroundColor: theme.palette.background.alt,
-              color: theme.palette.secondary[100],
-              borderBottom: "none",
-            },
-            "& .MuiDataGrid-virtualScroller": {
-              backgroundColor: theme.palette.background.alt,
-            },
-            "& .MuiDataGrid-footerContainer": {
-              backgroundColor: theme.palette.background.alt,
-              color: theme.palette.secondary[100],
-              borderTop: "none",
-            },
-            "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
-              color: `${theme.palette.secondary[200]} !important`,
-            },
-          }}
-        >
-            <Typography  variant="h5" fontWeight="600" className="title">
-                Liste des utilisateurs            
-          </Typography>
+            {/* Contenu des transactions */}
+            {transactions.map((u, index) => (
+                <Box
+                  key={u?.uid ?? index} // Utilise `index` comme clé de secours
+                  display="grid"
+                  gridTemplateColumns="repeat(3, 1fr)"
+                  borderBottom={`1px solid ${colors.grey?.[300] || "#e0e0e0"}`}
+                  p="10px"
+                >
+                  <Typography color="#ffffff" fontWeight="500">
+                    {u?.user?.displayName || "Nom indisponible"}
+                  </Typography>
+                  <Typography color="FFD166" fontWeight="600">
+                    {u?.amount ?? 0} USD
+                  </Typography>
+                  <Typography
+                    color={u?.status === "Validé" ? colors.success?.[500] || "#4caf50" : colors.error?.[500] || "#f44336"}
+                    fontWeight="600"
+                  >
+                    {u?.status || "Inconnu"}
+                  </Typography>
+                </Box>
+              ))}
 
-          {
-          loading ? <div>Loading....</div> : (
-            <div>
-              
-              <div className="row col-4">
-                
-                  {/* <div>ID</div> */}
-                  <div className="column">Nom</div>
-                  <div className="column">Portfeuille</div>
-                  <div className="column">Score</div>
-                  <div className="column">Meilleur score</div>
-              
-              </div>
-              <div>
-                {
-                  users.map((u) => {
-                    return (
-                      <div className="row col-4" key={u.uid}>
-                        {/* <td>
-                          { u.uid }
-                        </td> */}
-                        <span className="column">
-                          {u.displayName}
-                        </span>
+                        </Box>
                         
-                        <span className="column">
-                          {u.wallet?.amount ?? 0}
-                        </span>
-                        <span className="column">
-                          { u.score ?? 0}
-                        </span>
-                        <span className="column">
-                          { u.bestScore?.points ?? 0}
-                        </span>
-                      </div>
-                    )
-                  })
-                }
-              </div>
-            </div>
-          )
-        }
 
-
+          
+          )}
         </Box>
+
+        {/* Recettes générées */}
+        <Box
+          gridColumn="span 6"
+          borderRadius="0.55rem"
+          backgroundColor={theme.palette.background.alt}
+        >
+          <Box p="25px 30px" display="flex" justifyContent="space-between" alignItems="center">
+            <Box>
+              <Typography variant="h5" fontWeight="600" color={colors.grey[100]}  mb="15px">
+                Recettes générées (Gain total)
+              </Typography>
+              {loading.wallet ? (
+                <Typography variant="h6" color={colors.grey[500]}>
+                  Chargement...
+                </Typography>
+              ) : error.wallet ? (
+                <Typography variant="h6" color="red">
+                  {error.wallet}
+                </Typography>
+              ) : (
+                <Typography
+                  variant="h3"
+                  fontWeight="bold"
+                  color={theme.palette.secondary[500]}
+                >
+                  {walletData !== null ? `$${walletData.toFixed(2)}` : "Données indisponibles"}
+                </Typography>
+              )}
+            </Box>
+
+            <IconButton>
+              <DownloadOutlinedIcon sx={{ fontSize: "26px", color: theme.palette.secondary[500] }} />
+            </IconButton>
+          </Box>
+
+          <Box height="250px">
+            {chartData.length === 0 ? (
+              <Typography textAlign="center" color={colors.grey[500]}>
+                Aucune donnée à afficher pour le graphique.
+              </Typography>
+            ) : (
+              <LineChart data={chartData} isDashboard={true} />
+            )}
+          </Box>
+        </Box>
+
+        {/* Liste des utilisateurs */}
+        <Box
+  gridColumn="span 8"
+  borderRadius="0.55rem"
+  backgroundColor={theme.palette.background.alt}
+  p="20px"
+>
+  {/* Titre de la section */}
+  <Box
+    display="flex"
+    justifyContent="space-between"
+    alignItems="center"
+    borderBottom={`4px solid ${colors.primary[500]}`}
+    p="15px"
+  >
+    <Typography variant="h5" fontWeight="600" color={colors.grey[100]}>
+      Liste des utilisateurs
+    </Typography>
+  </Box>
+
+  {loading.users ? (
+    <Typography textAlign="center">Chargement des utilisateurs...</Typography>
+  ) : error.users ? (
+    <Typography textAlign="center" color="red">
+      {error.users}
+    </Typography>
+  ) : (
+    <Box>
+      {/* Titres des colonnes */}
+      <Box
+        display="grid"
+        gridTemplateColumns="repeat(4, 1fr)"
+        borderBottom={`2px solid ${colors.primary[500]}`}
+        p="10px"
+        mb="10px"
+        textAlign="center"
+      >
+        <Typography fontWeight="700" color={colors.grey[100]}>
+          Nom
+        </Typography>
+        <Typography fontWeight="700" color={colors.grey[100]}>
+          Montant du portefeuille
+        </Typography>
+        <Typography fontWeight="700" color={colors.grey[100]}>
+          Score
+        </Typography>
+        <Typography fontWeight="700" color={colors.grey[100]}>
+          Meilleur Score
+        </Typography>
+      </Box>
+
+      {/* Données des utilisateurs */}
+         {users.map((u, index) => (
+          <Box
+            key={u?.uid ?? index}
+            display="grid"
+            gridTemplateColumns="repeat(4, 1fr)"
+            borderBottom={`1px solid ${colors.grey[300]}`}
+            p="10px"
+            textAlign="center"
+          >
+            <Typography>{u?.displayName ?? "Nom indisponible"}</Typography>
+            <Typography>{u?.wallet?.amount ?? 0}</Typography>
+            <Typography>{u?.score ?? 0}</Typography>
+            <Typography>{u?.bestScore?.points ?? 0}</Typography>
+          </Box>
+        ))}
+
+    </Box>
+  )}
+</Box>
+
+
+        {/* Transactions en attente */}
         <Box
           gridColumn="span 4"
-          gridRow="span 3"
-          backgroundColor={theme.palette.background.alt}
-          p="1.5rem"
           borderRadius="0.55rem"
+          backgroundColor={theme.palette.background.alt}
+          p="20px"
         >
-          <Typography variant="h6" sx={{ color: theme.palette.secondary[100] }}>
-             Transaction en attente
-          </Typography>
-          <RecentTransaction/>
-          
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+            borderBottom={`4px solid ${colors.primary[500]}`}
+            p="15px"
+          >
+            <Typography variant="h5" fontWeight="600" color={colors.grey[100]} >
+            Transactions en attente
+            </Typography>
+          </Box>
+          <RecentTransaction />
         </Box>
       </Box>
     </Box>
