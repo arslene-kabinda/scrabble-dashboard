@@ -10,13 +10,7 @@ import Dashboard from "./scenes/dashboard";
 import Users from "./scenes/users";
 import Transactions from "./scenes/transactions";
 import Games from "./scenes/games";
-// import Geography from "scenes/geography";
-// import Overview from "scenes/overview";
-// import Daily from "scenes/daily";
-// import Monthly from "scenes/monthly";
-// import Breakdown from "scenes/breakdown";
-// import Admin from "scenes/admin";
-// import Performance from "scenes/performance";
+
 
 function App() {
   const mode = useSelector((state) => state.global.mode);

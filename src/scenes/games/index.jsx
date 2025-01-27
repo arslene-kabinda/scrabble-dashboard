@@ -1,9 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Box, useTheme } from "@mui/material";
-import { DataGrid } from "@mui/x-data-grid";
-import { useGetTransactionsQuery } from "../../state/api";
 import Header from "../../components/Header";
-import DataGridCustomToolbar from "../../components/DataGridCustomToolbar";
 import axiosInstance from "../../services/axios";
 import UserGame from "../../components/UserGame";
 
@@ -18,26 +15,29 @@ const Games = () => {
   const [games, setGames] = useState([]);
   const [searchInput, setSearchInput] = useState("");
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null);
+
 
   useEffect(() => {
     fetchGames();
 
   }, [])
   const fetchGames = async () => {
-    setLoading(true)
+    setLoading(true);
+    setError(null); // Réinitialise l'erreur avant une nouvelle requête
     try {
-      const { data } = await axiosInstance('/games')
-      setGames(data)
+      const { data } = await axiosInstance('/games');
+      setGames(data);
     } catch (e) {
-
+      setError("Une erreur s'est produite lors de la récupération des jeux.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <Box m="1.5rem 2.5rem">
-      <Header title="TRANSACTIONS" subtitle="Liste des transactions" />
+      <Header title="JEUX" subtitle="Jeux" />
       <Box
         height="80vh"
         sx={{
@@ -70,17 +70,24 @@ const Games = () => {
             <div className="grid grid-cols-2 gap">
               {
                 games.map((game) => {
+                  if (!game.usersModels || !game.usersModels.length || !game.users) {
+                    return (
+                      <div key={game.id} className="w-full p-4 border rounded-lg">
+                        Données du jeu manquantes.
+                      </div>
+                    );
+                  }
                   const firstUser = game.usersModels[0]
                   const secondUser = game.usersModels[1]
                   return (
-                    <div className="w-full grid grid-cols-3 gap-5 border gap padding">
-                      <UserGame details={firstUser} score={game.users.find(u => u.userId == firstUser.uid)} />
+                    <div  key={game.id}  className="w-full grid grid-cols-3 gap-5 border gap padding">
+                      <UserGame details={firstUser} score={game.users.find(u => u.userId === firstUser.uid)} />
                       <div className="w-full flex items-center justify-center">
                         <span>
                           -
                         </span>
                       </div>
-                      <UserGame left={true} details={secondUser} score={game.users.find(u => u.userId == secondUser.uid)} />
+                      <UserGame left={true} details={secondUser} score={game.users.find(u => u.userId === secondUser.uid)} />
                     </div>
                   )
                 })
