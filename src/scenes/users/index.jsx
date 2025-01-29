@@ -29,7 +29,7 @@ const Users = () => {
 
   return (
     <Box m="1.5rem 2.5rem">
-      <Header title="Users" subtitle="Liste des utilisateurs" />
+      <Header title="Users" subtitle={`Liste des utilisateurs: ${users.length}`} />
       <Box
         mt="40px"
         height="75vh"

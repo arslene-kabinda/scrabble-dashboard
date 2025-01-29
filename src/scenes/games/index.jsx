@@ -70,24 +70,30 @@ const Games = () => {
             <div className="grid grid-cols-2 gap">
               {
                 games.map((game) => {
-                  if (!game.usersModels || !game.usersModels.length || !game.users) {
+                  if (!game.users) {
                     return (
                       <div key={game.id} className="w-full p-4 border rounded-lg">
                         Données du jeu manquantes.
                       </div>
                     );
                   }
-                  const firstUser = game.usersModels[0]
-                  const secondUser = game.usersModels[1]
+                  const firstUser = game.users[0]
+                  const secondUser = game.users[1]
                   return (
                     <div  key={game.id}  className="w-full grid grid-cols-3 gap-5 border gap padding">
-                      <UserGame details={firstUser} score={game.users.find(u => u.userId === firstUser.uid)} />
-                      <div className="w-full flex items-center justify-center">
+                      <UserGame details={firstUser.user} />
+                      <div className="w-full flex items-center justify-center gap-3">
+                        <span>
+                          {firstUser.score}
+                        </span>
                         <span>
                           -
                         </span>
+                        <span>
+                          {secondUser.score}
+                        </span>
                       </div>
-                      <UserGame left={true} details={secondUser} score={game.users.find(u => u.userId === secondUser.uid)} />
+                      <UserGame details={secondUser.user} />
                     </div>
                   )
                 })
