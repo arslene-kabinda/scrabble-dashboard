@@ -7,6 +7,7 @@ import DownloadOutlinedIcon from "@mui/icons-material/DownloadOutlined";
 import LineChart from "../../components/LineChart";
 import RecentTransaction from "../../components/RecentTransaction";
 import axiosInstance from "../../services/axios";
+import PieChart from "../../components/PieChart";
 
 const Dashboard = () => {
   const theme = useTheme();
@@ -16,14 +17,16 @@ const Dashboard = () => {
   const [transactions, setTransactions] = useState([]);
   const [users, setUsers] = useState([]);
   const [walletData, setWalletData] = useState(null);
+  const [walletAmount, setWalletAmount] = useState(null);
   const [chartData, setChartData] = useState([]);
   const [loading, setLoading] = useState({ users: false, transactions: false, wallet: false });
   const [error, setError] = useState({ users: null, transactions: null, wallet: null });
 
   useEffect(() => {
-    fetchData("/users/randoms?nbr=18", setUsers, "users");
-    fetchData("/transactions?nbr=10&all=all", setTransactions, "transactions");
+    fetchData("/users/randoms?nbr=15", setUsers, "users");
+    fetchData("/transactions?nbr=5&all=all", setTransactions, "transactions");
     fetchWalletData();
+    fetchWalletAmount();
   }, []);
 
   // Generic fetch function for users and transactions
@@ -72,6 +75,24 @@ const Dashboard = () => {
       setLoading((prev) => ({ ...prev, wallet: false }));
     }
   };
+ const fetchWalletAmount = async () => {
+  setLoading((prev) => ({ ...prev, wallet: true }));
+  setError((prev) => ({ ...prev, wallet: null }));
+
+  try {
+    const { data } = await axiosInstance.get("/app-wallet/funds");
+
+    // Stocker la valeur directement
+    setWalletAmount(typeof data === "number" ? data : 0);
+  } catch (err) {
+    setError((prev) => ({ ...prev, wallet: "Erreur lors de la récupération du montant du portefeuille." }));
+    console.error("Erreur lors de la récupération du walletAmount:", err);
+  } finally {
+    setLoading((prev) => ({ ...prev, wallet: false }));
+  }
+};
+
+  
 
   return (
     <Box m="1.5rem 2.5rem">
@@ -89,7 +110,7 @@ const Dashboard = () => {
       >
         {/* Transactions récentes */}
         <Box
-          gridColumn="span 6"
+          gridColumn="span 4"
           borderRadius="0.55rem"
           backgroundColor={theme.palette.background.alt}
           overflow="auto"
@@ -125,7 +146,7 @@ const Dashboard = () => {
               borderRadius="0.25rem"
             >
               <Typography color= "#ffffff" fontWeight="700">
-                Nom de l'utilisateur
+                Nom 
               </Typography>
               <Typography color= "#ffffff" fontWeight="700">
                 Montant (USD)
@@ -168,7 +189,7 @@ const Dashboard = () => {
 
         {/* Recettes générées */}
         <Box
-          gridColumn="span 6"
+          gridColumn="span 4"
           borderRadius="0.55rem"
           backgroundColor={theme.palette.background.alt}
         >
@@ -211,6 +232,47 @@ const Dashboard = () => {
             )}
           </Box>
         </Box>
+        <Box
+          gridColumn="span 4"
+          borderRadius="0.55rem"
+          backgroundColor={theme.palette.background.alt}
+        >
+          <Box p="25px 30px" display="flex" justifyContent="space-between" alignItems="center">
+            <Box>
+              <Typography variant="h5" fontWeight="600" color={colors.grey[100]}  mb="15px">
+                Montant total du portefeuille
+              </Typography>
+              {loading.wallet ? (
+                <Typography variant="h6" color={colors.grey[500]}>
+                  Chargement...
+                </Typography>
+              ) : error.wallet ? (
+                <Typography variant="h6" color="red">
+                  {error.wallet}
+                </Typography>
+              ) : (
+                <Typography
+                variant="h3"
+                fontWeight="bold"
+                color={theme.palette.secondary[500]}
+              >
+                {walletAmount !== null ? `$${walletAmount.toFixed(2)}` : "Données indisponibles"}
+              </Typography>
+              
+              )}
+            </Box>
+
+            
+          </Box>
+
+         <Box height="250px" display="flex" justifyContent="center" alignItems="center">
+          {walletAmount !== null ? (
+            <PieChart walletAmount={walletAmount} />
+          ) : (
+            <Typography color={colors.grey[500]}>Aucune donnée disponible.</Typography>
+          )}
+        </Box>
+        </Box>
 
         {/* Liste des utilisateurs */}
         <Box
@@ -245,7 +307,8 @@ const Dashboard = () => {
         display="grid"
         gridTemplateColumns="repeat(4, 1fr)"
         borderBottom={`2px solid ${colors.primary[500]}`}
-        p="10px"
+        pb="10px"
+        pt="10px"
         mb="10px"
         textAlign="center"
       >

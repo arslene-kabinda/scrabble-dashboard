@@ -159,7 +159,7 @@ function RecentTransaction() {
 
 	if (!transactions.length)
 		return (
-			<div className="flex h-screen w-screen items-center justify-center flex-col gap-3">
+			<div className="flex h-screen  items-center justify-center flex-col gap-3">
 				<p>Aucune transaction en attente</p>
 				<button
 					onClick={loadTransactions}
