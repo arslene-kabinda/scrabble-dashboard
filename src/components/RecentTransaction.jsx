@@ -1,12 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { getTransactions, validateTransaction } from "../services/transactions";
-import { displayPhoneNumber } from "../utils/functions";
-import { FaCopy } from "react-icons/fa";
-import { useCopyToClipboard } from "usehooks-ts";
-import { IoIosCheckmarkCircleOutline } from "react-icons/io";
 import { IoMdSync } from "react-icons/io";
 import { onSnapshot, doc } from "firebase/firestore";
 import { db } from "../utils/firebase";
+import { FaTimes } from "react-icons/fa";
 
 const Spinner = () => {
 	return (
@@ -33,17 +30,10 @@ const Spinner = () => {
 };
 
 const Transaction = ({ transaction, onValidation }) => {
-	const [copied, setCopied] = useState(false);
-	const [, copy] = useCopyToClipboard();
 	const [loading, setLoading] = useState(false);
 	const [displayedName, setDisplayedName] = useState("");
 	const [ref, setRef] = useState("");
-
-	const handleCopy = (text) => {
-		copy(text).then(() => {
-			setCopied(true);
-		});
-	};
+	const [showValidateModal, setShowValidateModal] = useState(false);
 
 	const validate = async (e) => {
 		e.preventDefault();
@@ -57,14 +47,6 @@ const Transaction = ({ transaction, onValidation }) => {
 		if (validated) onValidation(transaction.uid);
 		setLoading(false);
 	};
-
-	useEffect(() => {
-		if (!copied) return;
-		const time = setTimeout(() => {
-			setCopied(false);
-		}, [3000]);
-		return () => clearTimeout(time);
-	}, [copied]);
 
 	useEffect(() => {
 		const unsub = onSnapshot(
@@ -85,49 +67,70 @@ const Transaction = ({ transaction, onValidation }) => {
 	}, [transaction.uid]);
 
 	return (
-		<div className="border border-white rounded-md p-3 flex flex-col gap-5 ">
-			<h2 className="text-xl">{transaction.amount} $</h2>
-			<div className="flex items-center gap-3 justify-between">
-				<span>{transaction.phone}</span>
+		<>
+			{showValidateModal && (
+				<div className="fixed text-slate-700 flex items-end justify-end top-0 left-0 z-[100000] bg-black bg-opacity-40 w-screen h-screen">
+					<div className="w-[400px] h-screen bg-white p-5 flex flex-col gap-3">
+						<button
+							className="p-3 w-fit h-fit ml-auto text-white bg-slate-700 rounded-full"
+							type="button"
+							onClick={() => setShowValidateModal(false)}
+						>
+							<FaTimes />
+						</button>
+						<h3 className="text-2xl font-bold">Valider le retrait</h3>
+						<h3 className="font-bold">
+							{transaction.user?.displayName ?? "Anonyme"}
+						</h3>
+						<p className="text-2xl">{transaction.amount}$</p>
+						<p>{transaction.phone}</p>
+						<form onSubmit={validate} className="flex flex-col w-full gap-2">
+							<input
+								value={displayedName}
+								onChange={(e) => setDisplayedName(e.target.value)}
+								type="text"
+								placeholder="Nom apparu lors de la transaction"
+								className="w-full p-2 border outline-none focus:outline-none rounded-md"
+								required
+							/>
+							<input
+								value={ref}
+								onChange={(e) => setRef(e.target.value)}
+								type="text"
+								placeholder="Référence de la transaction"
+								className="w-full p-2 border outline-none focus:outline-none rounded-md"
+								required
+							/>
+							<button className="w-full p-2 rounded-md bg-cyan-700 text-white flex items-center justify-center">
+								{loading ? (
+									<span>
+										<Spinner />
+									</span>
+								) : (
+									<span className="text-sm">Valider</span>
+								)}
+							</button>
+						</form>
+					</div>
+				</div>
+			)}
+			<div className="w-full border gap-2 rounded-md p-2 flex flex-col">
+				<h3 className="font-bold">
+					{transaction.user?.displayName ?? "Anonyme"}
+				</h3>
+				<p className="text-2xl">{transaction.amount}$</p>
+				<p>{Intl.DateTimeFormat("fr", {dateStyle: 'long', timeStyle: 'medium'}).format(new Date(transaction.createdAt))}</p>
+				<p>{transaction.phone}</p>
 				<button
-					onClick={() => {
-						handleCopy(`0${displayPhoneNumber(transaction.phone)}`);
-					}}
+					onClick={() => setShowValidateModal(true)}
+					className="ml-auto w-fit px-5 py-2 rounded-md border border-white text-white text-sm"
 				>
-					{copied ? <IoIosCheckmarkCircleOutline /> : <FaCopy />}
+					Valider
 				</button>
 			</div>
-			<form onSubmit={validate} className="flex flex-col w-full gap-2">
-				<input
-					value={displayedName}
-					onChange={(e) => setDisplayedName(e.target.value)}
-					type="text"
-					placeholder="Nom apparu lors de la transaction"
-					className="w-full p-2 border outline-none focus:outline-none rounded-md"
-					required
-				/>
-				<input
-					value={ref}
-					onChange={(e) => setRef(e.target.value)}
-					type="text"
-					placeholder="Référence de la transaction"
-					className="w-full p-2 border outline-none focus:outline-none rounded-md"
-					required
-				/>
-				<button className="w-full p-2 rounded-md bg-cyan-700 text-white flex items-center justify-center">
-					{loading ? (
-						<span>
-							<Spinner />
-						</span>
-					) : (
-						<span className="text-sm">Valider</span>
-					)}
-				</button>
-			</form>
-		</div>
+		</>
 	);
 };
-
 
 function RecentTransaction() {
 	const [loading, setLoading] = useState(false);
@@ -152,7 +155,7 @@ function RecentTransaction() {
 
 	if (loading)
 		return (
-			<div className="flex h-screen w-screen items-center justify-center">
+			<div className="flex p-5 items-center justify-center">
 				<Spinner />
 			</div>
 		);
@@ -174,21 +177,26 @@ function RecentTransaction() {
 		);
 
 	return (
-		<div className="w-screen flex flex-col gap-5 p-5">
+		<div className="flex flex-col max-h-[1200px] overflow-y-scroll gap-5 w-full py-5">
 			<div className="flex items-center justify-between w-full gap-3">
-				<h1 className="text-2xl font-bold">Transactions en attente</h1>
+				<h1 className="font-bold text-xl">Transactions en attente</h1>
 				<button onClick={loadTransactions} className="text-xl text-gray-700">
 					<IoMdSync />
 				</button>
 			</div>
-			<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-				{transactions.map((transaction, index) => (
-					<Transaction
-						onValidation={onValidation}
-						transaction={transaction}
-						key={index.valueOf()}
-					/>
-				))}
+			<div className="grid grid-cols-1 gap-3">
+				{[...transactions]
+					.sort(
+						(b, a) =>
+							new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+					)
+					.map((transaction, index) => (
+						<Transaction
+							key={index.valueOf()}
+							transaction={transaction}
+							onValidation={onValidation}
+						/>
+					))}
 			</div>
 		</div>
 	);
