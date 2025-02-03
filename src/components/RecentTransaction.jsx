@@ -180,7 +180,7 @@ function RecentTransaction() {
 		<div className="flex flex-col max-h-[1200px] overflow-y-scroll gap-5 w-full py-5">
 			<div className="flex items-center justify-between w-full gap-3">
 				<h1 className="font-bold text-xl">Transactions en attente</h1>
-				<button onClick={loadTransactions} className="text-xl text-gray-700">
+				<button onClick={loadTransactions} className="text-xl text-white-700">
 					<IoMdSync />
 				</button>
 			</div>
