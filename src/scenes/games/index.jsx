@@ -41,7 +41,7 @@ const Games = () => {
 
   return (
     <Box m="1.5rem 2.5rem">
-      <Header title="JEUX" subtitle="Jeux" />
+      <Header title="JEUX" subtitle={<span style={{ marginBottom: "1rem", display: "inline-block" }}>Jeux</span>} />
       <Box
         height="80vh"
         sx={{
@@ -103,7 +103,7 @@ const Games = () => {
                   })
                 }
               </div>
-              <Pagination count={Math.ceil(games.length / gamesPerPage)} page={page} onChange={handleChangePage} color="primary" />
+              <Pagination count={Math.ceil(games.length / gamesPerPage)} page={page} onChange={handleChangePage} color="primary" sx={{ mt: 2 }} />
             </>
           )
         }
