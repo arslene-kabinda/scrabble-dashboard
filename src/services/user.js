@@ -1,3 +1,5 @@
+import axiosInstance from "./axios";
+
 export const getUsers = async () => {
 	console.log(process.env.REACT_APP_API_URL)
 	try {
