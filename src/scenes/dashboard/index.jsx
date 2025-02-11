@@ -15,6 +15,7 @@ const Dashboard = () => {
 
   // States
   const [transactions, setTransactions] = useState([]);
+  const [showCashoutModal, setShowCashoutModal] = useState(false)
   const [users, setUsers] = useState([]);
   const [walletData, setWalletData] = useState(null);
   const [walletAmount, setWalletAmount] = useState(null);
