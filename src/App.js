@@ -10,6 +10,7 @@ import Dashboard from "./scenes/dashboard";
 import Users from "./scenes/users";
 import Transactions from "./scenes/transactions";
 import Games from "./scenes/games";
+import AppWallet from "./scenes/appwallet";
 
 
 function App() {
@@ -27,8 +28,7 @@ function App() {
               <Route path="/users" element={<Users />} />
               <Route path="/transactions" element={<Transactions />} />
               <Route path="/games" element={<Games />} />
-
-           
+              <Route path="/app-wallet" element={<AppWallet />} />
             </Route>
           </Routes>
         </ThemeProvider>
