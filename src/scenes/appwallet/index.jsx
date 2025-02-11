@@ -62,6 +62,7 @@ const AppWallet = () => {
 									name="amount"
 									id="amount"
 									value={amount}
+                  min={1}
 									onChange={(e) => setAmount(Number(e.target.value))}
 									max={walletData}
 									required
