@@ -31,7 +31,7 @@ const Users = () => {
 	const fetchUsers = async (query = "") => {
 		setLoading(true);
 		try {
-			const { data } = await axiosInstance(`/users/search?q=${query}`);
+			const { data } = await axiosInstance(`/users/search?q=${query}&n=10000`);
 			setUsers(data);
 		} catch (e) {
 			console.error("Erreur lors du chargement des utilisateurs", e);

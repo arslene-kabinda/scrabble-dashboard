@@ -168,7 +168,7 @@ const AppWallet = () => {
 										</tr>
 									</thead>
 									<tbody>
-										{transactions.map((transaction, index) => (
+										{[...transactions].sort((a,b) => (new Date(b.createdAt)).getTime() - (new Date(a.createdAt)).getTime()).map((transaction, index) => (
 											<tr
 												key={index.valueOf()}
 												className=" border-gray-200"
