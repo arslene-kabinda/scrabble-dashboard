@@ -37,7 +37,7 @@ const Transaction = ({ transaction, onValidation }) => {
 
 	const validate = async (e) => {
 		e.preventDefault();
-		if (!ref || !displayedName) return;
+		if (!displayedName) return;
 		if (loading) return;
 		setLoading(true);
 		const validated = await validateTransaction(transaction.uid, {
@@ -99,7 +99,6 @@ const Transaction = ({ transaction, onValidation }) => {
 								type="text"
 								placeholder="Référence de la transaction"
 								className="w-full p-2 border outline-none focus:outline-none rounded-md"
-								required
 							/>
 							<button className="w-full p-2 rounded-md bg-cyan-700 text-white flex items-center justify-center">
 								{loading ? (
